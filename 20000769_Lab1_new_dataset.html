@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <style>
+        body{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        li{
+            margin: 50px 30px 50px 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="my_dataviz"></div>
+
+    <script>
+        // set the dimensions and margins of the graph
+        var margin = { top: 50, right: 30, bottom: 50, left: 100 },
+            width = 700 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Parse the Data
+        d3.csv("https://raw.githubusercontent.com/ahmaditqan/Data_Visual_Lab1/main/electronics_2.csv", function (data) {
+
+            // List of subgroups = header of the csv files = soil condition here
+            var subgroups = data.columns.slice(1)
+
+
+            // List of groups = species here = value of the first column called group -> I show them on the X axis
+            var groups = d3.map(data, function (d) { return (d.Month) }).keys()
+
+            // Add X axis
+            var x = d3.scaleBand()
+                .domain(groups)
+                .range([0, width])
+                .padding([0.2])
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickSize(0));
+
+            // Add Y axis
+            var y = d3.scaleLinear()
+                .domain([0, 35])
+                .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            //Add y axis label
+            svg.append("text")
+            .style("text-achor","end")
+            .attr("transform","rotate(-90)")
+            .attr("y", -margin.left + 40)
+            .attr("x", -margin.top - 180)
+            .text("Number of Unit");
+
+            //Add x axis label
+            svg.append("text")
+            .attr("y", +margin.top +400)
+            .attr("x", +margin.left +150)
+            .text("Month");
+
+            //main title label 
+            svg.append("text")
+             .attr("x", (width/4))
+             .attr("y", 0 - (margin.top/2))
+             .text("The number of appliances and mobile sales");
+
+
+            // Another scale for subgroup position?
+            var xSubgroup = d3.scaleBand()
+                .domain(subgroups)
+                .range([0, x.bandwidth()])
+                .padding([0.05])
+
+            // color palette = one color per subgroup
+            var color = d3.scaleOrdinal()
+                .domain(subgroups)
+                .range(['#D1D27F','#7FD2BB','#e41a1c', '#377eb8', '#4daf4a'])
+
+            // Show the bars
+            svg.append("g")
+                .selectAll("g")
+                // Enter in data = loop group per group
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("transform", function (d) { return "translate(" + x(d.Month) + ",0)"; })
+                .selectAll("rect")
+                .data(function (d) { return subgroups.map(function (key) { return { key: key, value: d[key] }; }); })
+                .enter().append("rect")
+                .attr("x", function (d) { return xSubgroup(d.key); })
+                .attr("y", function (d) { return y(d.value); })
+                .attr("width", xSubgroup.bandwidth())
+                .attr("height", function (d) { return height - y(d.value); })
+                .attr("fill", function (d) {
+                    return color(d.key);
+                });
+                       
+
+
+        })
+
+    </script>
+</body>
+
+<div class="summary-content">
+    <header class="head-content">Summary</header>
+    <div class="content">
+        <ul>
+            <li>In January, the refrigerator was the most looked for by customers.</li>
+            <li>In February, the refrigerator trend declined slightly and TV took over the place.</li>
+            <li>In March, the washing machine inclined significantly and became the highest product sold.</li>
+            <li>Ultimately, the mobile product was in high demand and received the highest number of sales in April.</li>
+        </ul>
+    </div>
+</div>
+
+</html>
